@@ -1,5 +1,5 @@
-﻿
-using Mala.Core;
+﻿using Mala.Core;
+
 /// <summary>
 /// 
 /// </summary>
@@ -11,7 +11,7 @@ public class WorkerThreadManager : Singleton< WorkerThreadManager >
     List< Thread > threads;
 
     /// <summary>
-    /// 
+    /// 초기화한다.
     /// </summary>
     public void Initialize( int n )
     {
@@ -28,23 +28,37 @@ public class WorkerThreadManager : Singleton< WorkerThreadManager >
     {
         return new Thread( () => 
         { 
-            ZoneManager zoneManager = ZoneManager.Instance;
-
             for ( ;; )
             {
-                // Zone 로직 처리
-                for ( ;; )
-                {
-                    var zone = zoneManager.GetZone();
-                    if ( zone is null )
-                        continue;
+                /// 다른 로직들을 처리....
 
-                    zone.Update();
-
-                    zoneManager.Return( zone );
-                }
+                /// 존 로직 처리
+                UpdateZoneLogic();
             }
 
         } );
+    }
+
+    /// <summary>
+    /// 존을 갱신한다.
+    /// </summary>
+    private static void UpdateZoneLogic()
+    {
+        ZoneManager zoneManager = ZoneManager.Instance;
+
+        // Zone 로직 처리
+        for ( ;; )
+        {
+            if ( zoneManager.IsCompleted )
+                return;
+
+            var zone = zoneManager.GetZone();
+            if ( zone is null )
+                continue;
+
+            zone.Update();
+
+            zoneManager.Return( zone );
+        }
     }
 }

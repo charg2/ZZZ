@@ -22,6 +22,11 @@ public class ZoneManager : Singleton< ZoneManager >
     /// <summary>
     /// 
     /// </summary>
+    long _zoneAddCount = 0;
+
+    /// <summary>
+    /// 존 보관 컬렉션
+    /// </summary>
     Zone[ , ] _zones;
 
     /// <summary>
@@ -100,12 +105,6 @@ public class ZoneManager : Singleton< ZoneManager >
     {
         for ( ;; )
         {
-            /// 처리완료중, 딴거나 하셈
-            if ( _zoneCapacity == _zoneUpdateCount )
-            {
-                return null;
-            }
-
             /// 처리중, 
             if ( _zoneCollection.TryPop( out var zone ) )
             {
@@ -121,17 +120,24 @@ public class ZoneManager : Singleton< ZoneManager >
     }
 
     /// <summary>
+    /// 처리완료중, 딴거나 하셈
+    /// </summary>
+    public bool IsCompleted => _zoneCapacity == _zoneAddCount;
+
+    /// <summary>
     /// 존을 반환한다.
     /// </summary>
     public void Return( Zone zone )
     {
         var nextIndex = Interlocked.Increment( ref _zoneUpdateCount );
         _subZones[ nextIndex ] = zone;
+        var addedCount = Interlocked.Increment( ref _zoneAddCount );
 
-        /// 최종 업데이트한 친구가 책임지고 정리
-        if ( nextIndex == _zoneCapacity )
+        /// 최종 삽입 완료한 친구가 책임지고 정리
+        if ( addedCount == _zoneCapacity )
         {
             _subZones.Shuffle();
+
             _zoneCollection.PushRange( _subZones );
 
             _zoneUpdateCount = 0;
