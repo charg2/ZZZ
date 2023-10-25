@@ -1,9 +1,4 @@
 ﻿using Mala.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 /// <summary>
@@ -11,8 +6,6 @@ using System.Threading.Tasks;
 /// </summary>
 public static class CollectionFastShuffle
 {
-    private static Random rng = new();
-
     public static void Shuffle< T >( this T[] array )
     {
         int n = array.Length;
