@@ -141,6 +141,7 @@ public class ZoneManager : Singleton< ZoneManager >
             _zoneCollection.PushRange( _subZones );
 
             _zoneUpdateCount = 0;
+            _zoneAddCount = 0;
         }
     }
 
