@@ -6,6 +6,11 @@
 public class Zone
 {
     /// <summary>
+    /// 식별자
+    /// </summary>
+    public u64 Id;
+
+    /// <summary>
     /// 주변 존 접근 정책
     /// </summary>
     static ValueTuple< i32, i32 >[] nearZoneAccessPolicy =
@@ -38,8 +43,10 @@ public class Zone
     /// <summary>
     /// 초기화한다.
     /// </summary>
-    public bool Initialize( Vector2Int index )
+    public bool Initialize( u64 id, Vector2Int index )
     {
+        Id = id;
+
         foreach ( var i in nearZoneAccessPolicy )
         {
             Zone? zone = ZoneManager.Instance[ index.y + i.Item1, index.x + i.Item2 ];
@@ -62,12 +69,12 @@ public class Zone
     /// </summary>
     public bool TryMarkNearZones()
     {
-        int markSuccessCount = 0;
+        i32 markCount = 0;
         foreach ( var zone in _nearZone ) 
         {
             if ( !zone.TryMark() )
             {
-                for ( int n = 0; n < markSuccessCount; n += 1 )
+                for ( i32 n = 0; n < markCount; n += 1 )
                 {
                     _nearZone[ n ].Unmark();
                 }
@@ -75,7 +82,7 @@ public class Zone
                 return false;
             }
 
-            markSuccessCount += 1;
+            markCount += 1;
         }
 
         return true;

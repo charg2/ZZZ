@@ -12,17 +12,17 @@ public class ZoneManager : Singleton< ZoneManager >
     /// <summary>
     /// Zone 최대 갯수
     /// </summary>
-    int _zoneCapacity = 0;
+    i32 _zoneCapacity = 0;
 
     /// <summary>
     /// 업데이트 횟수
     /// </summary>
-    long _zoneUpdateCount = -1;
+    i64 _zoneUpdateCount = -1;
 
     /// <summary>
-    /// 
+    /// 존 반환 횟수
     /// </summary>
-    long _zoneAddCount = 0;
+    i64 _zonePushCount = 0;
 
     /// <summary>
     /// 존 보관 컬렉션
@@ -40,9 +40,9 @@ public class ZoneManager : Singleton< ZoneManager >
     public ConcurrentStack< Zone > _zoneCollection = new();
 
     /// <summary>
-    /// 
+    /// 초기화한다.
     /// </summary>
-    public void Initialize( int y, int x )
+    public void Initialize( i32 y, i32 x )
     {
         _zoneCapacity = y * x;
 
@@ -53,22 +53,23 @@ public class ZoneManager : Singleton< ZoneManager >
     }
 
     /// <summary>
-    /// 
+    /// 존들을 초기화한다.
     /// </summary>
-    private void InitZones( int y, int x )
+    private void InitZones( i32 y, i32 x )
     {
-        int i = 0;
+        u64 id = 0;
 
         _zones = new Zone[ y, x ];
-        for ( int yIndex = 0; yIndex < y; yIndex += 1 )
+        for ( i32 yIndex = 0; yIndex < y; yIndex += 1 )
         {
-            for ( int xIndex = 0; xIndex < x; xIndex += 1 )
+            for ( i32 xIndex = 0; xIndex < x; xIndex += 1 )
             {
                 _zones[ yIndex, xIndex ] = new Zone();
-                _zones[ yIndex, xIndex ].Initialize( new( yIndex, xIndex ) );
+                _zones[ yIndex, xIndex ].Initialize( id, new( yIndex, xIndex ) );
 
-                _subZones[ i ] = _zones[ yIndex, xIndex ];
-                i += 1;
+                _subZones[ id ] = _zones[ yIndex, xIndex ];
+
+                id += 1;
             }
         }
     }
@@ -76,8 +77,8 @@ public class ZoneManager : Singleton< ZoneManager >
     /// <summary>
     /// 유효한 인덱스 여부를 반환한다.
     /// </summary>
-    private bool IsValidIndex( int row, int column ) 
-        => row >= 0 && row < _zones.GetLength( 0 ) && column >= 0 && column < _zones.GetLength( 1 );
+    private bool IsValidIndex( i32 y, i32 x ) 
+        => y >= 0 && y < _zones.GetLength( 0 ) && x >= 0 && x < _zones.GetLength( 1 );
 
     /// <summary>
     /// 인덱서
@@ -87,7 +88,7 @@ public class ZoneManager : Singleton< ZoneManager >
     /// <summary>
     /// 인덱서
     /// </summary>
-    public Zone? this[ int y, int x ]
+    public Zone? this[ i32 y, i32 x ]
     {
         get
         {
@@ -101,7 +102,7 @@ public class ZoneManager : Singleton< ZoneManager >
     /// <summary>
     /// 존을 획득한다
     /// </summary>
-    public Zone? GetZone()
+    public Zone? Pop()
     {
         for ( ;; )
         {
@@ -110,31 +111,35 @@ public class ZoneManager : Singleton< ZoneManager >
             {
                 if ( !zone.TryMarkNearZones() )
                 {
-                    Push( zone );
+                    RePush( zone );
                     continue;
                 }
-            }
 
-            return zone;
+                return zone;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 
     /// <summary>
     /// 처리완료중, 딴거나 하셈
     /// </summary>
-    public bool IsCompleted => _zoneCapacity == _zoneAddCount;
+    public bool IsCompleted => _zoneCapacity == _zonePushCount;
 
     /// <summary>
     /// 존을 반환한다.
     /// </summary>
-    public void Return( Zone zone )
+    public void Push( Zone zone )
     {
         var nextIndex = Interlocked.Increment( ref _zoneUpdateCount );
         _subZones[ nextIndex ] = zone;
-        var addedCount = Interlocked.Increment( ref _zoneAddCount );
+        var pushedCount = Interlocked.Increment( ref _zonePushCount );
 
         /// 최종 삽입 완료한 친구가 책임지고 정리
-        if ( addedCount == _zoneCapacity )
+        if ( pushedCount == _zoneCapacity )
         {
             Reset();
         }
@@ -147,16 +152,35 @@ public class ZoneManager : Singleton< ZoneManager >
     {
         _subZones.Shuffle();
 
-        _zoneCollection.PushRange(_subZones);
-
         _zoneUpdateCount = -1;
-        _zoneAddCount = 0;
+
+        _zonePushCount = 0;
+
+        // ShowRst();
+
+        _zoneCollection.PushRange( _subZones );
+    }
+
+
+    /// <summary>
+    /// 리셋 디버깅용 카운트
+    /// </summary>
+    i64 _rstDebugCount = 0;
+
+
+    private void ShowRst()
+    {
+        var resetCount = _rstDebugCount++;
+        if ( ( resetCount % 10000 ) == 0 )
+        {
+            Console.WriteLine( "rst" );
+        }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    internal void Push( Zone zone )
+    public void RePush( Zone zone )
     {
         /// 경합을 줄이기 위해선..
         _zoneCollection.Push( zone );

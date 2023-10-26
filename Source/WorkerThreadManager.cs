@@ -65,7 +65,7 @@ public class WorkerThreadManager : Singleton< WorkerThreadManager >
             if ( zoneManager.IsCompleted )
                 return;
 
-            var zone = zoneManager.GetZone();
+            var zone = zoneManager.Pop();
             if ( zone is null )
                 continue;
 
@@ -73,7 +73,7 @@ public class WorkerThreadManager : Singleton< WorkerThreadManager >
 
             zone.UnmarkNearZones();
 
-            zoneManager.Return( zone );
+            zoneManager.Push( zone );
         }
     }
 }
