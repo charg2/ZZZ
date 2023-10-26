@@ -12,7 +12,7 @@ public class ZoneManager : Singleton< ZoneManager >
     /// <summary>
     /// Zone 최대 갯수
     /// </summary>
-    i32 _zoneCapacity = 0;
+    i32 _zoneCapacity;
 
     /// <summary>
     /// 업데이트 횟수
@@ -44,9 +44,6 @@ public class ZoneManager : Singleton< ZoneManager >
     /// </summary>
     public void Initialize( i32 y, i32 x )
     {
-        _zoneCapacity = y * x;
-
-        _subZones = new Zone[ _zoneCapacity ];
         InitZones( y, x );
 
         _zoneCollection.PushRange( _subZones, 0, _zoneCapacity );
@@ -58,8 +55,11 @@ public class ZoneManager : Singleton< ZoneManager >
     private void InitZones( i32 y, i32 x )
     {
         u64 id = 0;
+        _zoneCapacity = y * x;
 
         _zones = new Zone[ y, x ];
+        _subZones = new Zone[ _zoneCapacity ];
+
         for ( i32 yIndex = 0; yIndex < y; yIndex += 1 )
         {
             for ( i32 xIndex = 0; xIndex < x; xIndex += 1 )
@@ -102,12 +102,11 @@ public class ZoneManager : Singleton< ZoneManager >
     /// <summary>
     /// 존을 획득한다
     /// </summary>
-    public Zone? Pop()
+    public bool TryPop( out Zone zone )
     {
         for ( ;; )
         {
-            /// 처리중, 
-            if ( _zoneCollection.TryPop( out var zone ) )
+            if ( _zoneCollection.TryPop( out zone ) )
             {
                 if ( !zone.TryMarkNearZones() )
                 {
@@ -115,11 +114,11 @@ public class ZoneManager : Singleton< ZoneManager >
                     continue;
                 }
 
-                return zone;
+                return true;
             }
             else
             {
-                return null;
+                return false;
             }
         }
     }
@@ -132,23 +131,20 @@ public class ZoneManager : Singleton< ZoneManager >
     /// <summary>
     /// 존을 반환한다.
     /// </summary>
-    public void Push( Zone zone )
+    public bool Push( Zone zone )
     {
         var nextIndex = Interlocked.Increment( ref _zoneUpdateCount );
         _subZones[ nextIndex ] = zone;
         var pushedCount = Interlocked.Increment( ref _zonePushCount );
 
         /// 최종 삽입 완료한 친구가 책임지고 정리
-        if ( pushedCount == _zoneCapacity )
-        {
-            Reset();
-        }
+        return pushedCount == _zoneCapacity;
     }
 
     /// <summary>
     /// 초기 상태로 되돌린다.
     /// </summary>
-    private void Reset()
+    public void Reset()
     {
         _subZones.Shuffle();
 
@@ -166,14 +162,16 @@ public class ZoneManager : Singleton< ZoneManager >
     /// 리셋 디버깅용 카운트
     /// </summary>
     i64 _rstDebugCount = 0;
-
+    bool flag = false;
 
     private void ShowRst()
     {
         var resetCount = _rstDebugCount++;
         if ( ( resetCount % 10000 ) == 0 )
         {
-            Console.WriteLine( "rst" );
+            flag ^= true;
+
+            Console.WriteLine( flag ? "rst 0" : "rst 1"  );
         }
     }
 

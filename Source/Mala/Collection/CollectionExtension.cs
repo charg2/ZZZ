@@ -46,4 +46,12 @@ public static class ArrayClear
             array[ n ] = null;
         }
     }
+
+    public static void Clear2< T >( this T[] array ) where T : struct
+    {
+        for ( i32 n = 0; n < array.Length; n+= 1 )
+        {
+            array[ n ] = default( T );
+        }
+    }
 }

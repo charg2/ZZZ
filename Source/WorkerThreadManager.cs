@@ -48,7 +48,6 @@ public class WorkerThreadManager : Singleton< WorkerThreadManager >
                 /// 존 로직 처리
                 UpdateZoneLogic();
             }
-
         } );
     }
 
@@ -57,23 +56,23 @@ public class WorkerThreadManager : Singleton< WorkerThreadManager >
     /// </summary>
     private static void UpdateZoneLogic()
     {
-        ZoneManager zoneManager = ZoneManager.Instance;
+        var zoneManager = ZoneManager.Instance;
 
         // Zone 로직 처리
         for ( ;; )
         {
-            if ( zoneManager.IsCompleted )
+            if ( !zoneManager.TryPop( out var zone ) )
                 return;
-
-            var zone = zoneManager.Pop();
-            if ( zone is null )
-                continue;
 
             zone.Update();
 
             zone.UnmarkNearZones();
 
-            zoneManager.Push( zone );
+            if ( zoneManager.Push( zone ) )
+            {
+                zoneManager.Reset();
+                return;
+            }
         }
     }
 }
