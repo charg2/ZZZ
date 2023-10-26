@@ -1,4 +1,5 @@
 ﻿using Mala.Core;
+using System.Threading;
 
 /// <summary>
 /// 
@@ -8,7 +9,7 @@ public class WorkerThreadManager : Singleton< WorkerThreadManager >
     /// <summary>
     /// 스레드 컬렉션
     /// </summary>
-    List< Thread > threads;
+    List< Thread > threads = new();
 
     /// <summary>
     /// 초기화한다.
@@ -22,11 +23,23 @@ public class WorkerThreadManager : Singleton< WorkerThreadManager >
     }
 
     /// <summary>
+    /// 시작한다.
+    /// </summary>
+    public void Start()
+    {
+        foreach ( var thread in threads )
+        {
+            thread.Priority = ThreadPriority.Highest;
+            thread.Start();
+        }
+    }
+
+    /// <summary>
     /// 
     /// </summary>
     public static Thread Create()
     {
-        return new Thread( () => 
+        return new( () => 
         { 
             for ( ;; )
             {
@@ -57,6 +70,8 @@ public class WorkerThreadManager : Singleton< WorkerThreadManager >
                 continue;
 
             zone.Update();
+
+            zone.UnmarkNearZones();
 
             zoneManager.Return( zone );
         }

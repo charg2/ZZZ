@@ -17,7 +17,7 @@ public class ZoneManager : Singleton< ZoneManager >
     /// <summary>
     /// 업데이트 횟수
     /// </summary>
-    long _zoneUpdateCount = 0;
+    long _zoneUpdateCount = -1;
 
     /// <summary>
     /// 
@@ -30,7 +30,7 @@ public class ZoneManager : Singleton< ZoneManager >
     Zone[ , ] _zones;
 
     /// <summary>
-    /// 
+    /// \
     /// </summary>
     Zone[] _subZones;
 
@@ -82,7 +82,7 @@ public class ZoneManager : Singleton< ZoneManager >
     /// <summary>
     /// 인덱서
     /// </summary>
-    public Zone? this[ Vector2Int index ] => this[ index.x, index.y ];
+    public Zone? this[ Vector2Int index ] => this[ index.y, index.x ];
 
     /// <summary>
     /// 인덱서
@@ -91,7 +91,7 @@ public class ZoneManager : Singleton< ZoneManager >
     {
         get
         {
-            if ( IsValidIndex( y, x ) )
+            if ( !IsValidIndex( y, x ) )
                 return null;
 
             return _zones[ y, x ];
@@ -136,13 +136,21 @@ public class ZoneManager : Singleton< ZoneManager >
         /// 최종 삽입 완료한 친구가 책임지고 정리
         if ( addedCount == _zoneCapacity )
         {
-            _subZones.Shuffle();
-
-            _zoneCollection.PushRange( _subZones );
-
-            _zoneUpdateCount = 0;
-            _zoneAddCount = 0;
+            Reset();
         }
+    }
+
+    /// <summary>
+    /// 초기 상태로 되돌린다.
+    /// </summary>
+    private void Reset()
+    {
+        _subZones.Shuffle();
+
+        _zoneCollection.PushRange(_subZones);
+
+        _zoneUpdateCount = -1;
+        _zoneAddCount = 0;
     }
 
     /// <summary>

@@ -10,9 +10,9 @@ public class Zone
     /// </summary>
     static ValueTuple< i32, i32 >[] nearZoneAccessPolicy =
     [
-        new( -1, -1 ), new( -1, 0 ), new( -1, 1 ),
-        new(  0, -1 ), new(  0, 0 ), new(  0, 1 ),
-        new(  1, -1 ), new(  1, 0 ), new(  1, 1 ),
+        new ( -1, -1 ), new ( -1, 0 ), new ( -1, 1 ),
+        new (  0, -1 ), new (  0, 0 ), new (  0, 1 ),
+        new (  1, -1 ), new (  1, 0 ), new (  1, 1 ),
     ];
 
     /// <summary>
@@ -43,7 +43,7 @@ public class Zone
         foreach ( var i in nearZoneAccessPolicy )
         {
             Zone? zone = ZoneManager.Instance[ index.y + i.Item1, index.x + i.Item2 ];
-            if ( zone is null )
+            if ( zone != null )
             {
                 _nearZone.Add( zone );
             }
@@ -76,6 +76,19 @@ public class Zone
             }
 
             markSuccessCount += 1;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 주변 존에 대해 마크해제를 시도한다.
+    /// </summary>
+    public bool UnmarkNearZones()
+    {
+        foreach ( var zone in _nearZone ) 
+        {
+            zone.Unmark();
         }
 
         return true;

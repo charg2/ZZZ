@@ -9,11 +9,11 @@ public static class CollectionFastShuffle
     public static void Shuffle< T >( this T[] array )
     {
         int n = array.Length;
-        int max = n;
+        int capacity = n;
         while ( n > 1 )
         {
             n -= 1;
-            int k = FastRand.Gen() % max + 1;
+            int k = FastRand.Gen() % capacity;
 
             /// 스왑
             ( array[ k ] ) = ( array[ n ] );
@@ -22,12 +22,12 @@ public static class CollectionFastShuffle
 
     public static void Shuffle< T >( this List< T > list )
     {
-        int n = list.Count;
-        int max = n;
+        i32 n = list.Count;
+        i32 capacity = n;
         while ( n > 1 )
         {
             n -= 1;
-            int k = FastRand.Gen() % max + 1;
+            int k = FastRand.Gen() % capacity;
 
             ( list[ k ] ) = ( list[ n ] );
         }
