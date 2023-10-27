@@ -1,5 +1,4 @@
-﻿
-using Mala.Core;
+﻿using Mala.Core;
 using Mala.Math;
 using System.Collections.Concurrent;
 
@@ -30,9 +29,9 @@ public class ZoneManager : Singleton< ZoneManager >
     Zone[ , ] _zones;
 
     /// <summary>
-    /// \
+    /// 
     /// </summary>
-    Zone[] _subZones;
+    Zone[] _zoneArray;
 
     /// <summary>
     /// 
@@ -46,7 +45,7 @@ public class ZoneManager : Singleton< ZoneManager >
     {
         InitZones( y, x );
 
-        _zoneCollection.PushRange( _subZones, 0, _zoneCapacity );
+        _zoneCollection.PushRange( _zoneArray, 0, _zoneCapacity );
     }
 
     /// <summary>
@@ -58,7 +57,7 @@ public class ZoneManager : Singleton< ZoneManager >
         _zoneCapacity = y * x;
 
         _zones = new Zone[ y, x ];
-        _subZones = new Zone[ _zoneCapacity ];
+        _zoneArray = new Zone[ _zoneCapacity ];
 
         for ( i32 yIndex = 0; yIndex < y; yIndex += 1 )
         {
@@ -67,7 +66,7 @@ public class ZoneManager : Singleton< ZoneManager >
                 _zones[ yIndex, xIndex ] = new Zone();
                 _zones[ yIndex, xIndex ].Initialize( id, new( yIndex, xIndex ) );
 
-                _subZones[ id ] = _zones[ yIndex, xIndex ];
+                _zoneArray[ id ] = _zones[ yIndex, xIndex ];
 
                 id += 1;
             }
@@ -124,21 +123,26 @@ public class ZoneManager : Singleton< ZoneManager >
     }
 
     /// <summary>
-    /// 처리완료중, 딴거나 하셈
-    /// </summary>
-    public bool IsCompleted => _zoneCapacity == _zonePushCount;
-
-    /// <summary>
-    /// 존을 반환한다.
+    /// 삽입한다.
     /// </summary>
     public bool Push( Zone zone )
     {
         var nextIndex = Interlocked.Increment( ref _zoneUpdateCount );
-        _subZones[ nextIndex ] = zone;
+        _zoneArray[ nextIndex ] = zone;
         var pushedCount = Interlocked.Increment( ref _zonePushCount );
 
         /// 최종 삽입 완료한 친구가 책임지고 정리
         return pushedCount == _zoneCapacity;
+    }
+
+
+    /// <summary>
+    /// 재삽입 처리한다.
+    /// </summary>
+    public void RePush( Zone zone )
+    {
+        /// 경합을 줄이기 위해선..
+        _zoneCollection.Push( zone );
     }
 
     /// <summary>
@@ -146,7 +150,7 @@ public class ZoneManager : Singleton< ZoneManager >
     /// </summary>
     public void Reset()
     {
-        _subZones.Shuffle();
+        _zoneArray.Shuffle();
 
         _zoneUpdateCount = -1;
 
@@ -154,7 +158,7 @@ public class ZoneManager : Singleton< ZoneManager >
 
         // ShowRst();
 
-        _zoneCollection.PushRange( _subZones );
+        _zoneCollection.PushRange( _zoneArray );
     }
 
 
@@ -167,7 +171,7 @@ public class ZoneManager : Singleton< ZoneManager >
     private void ShowRst()
     {
         var resetCount = _rstDebugCount++;
-        if ( ( resetCount % 10000 ) == 0 )
+        if ( ( resetCount % 1_0000 ) == 0 )
         {
             flag ^= true;
 
@@ -175,14 +179,6 @@ public class ZoneManager : Singleton< ZoneManager >
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public void RePush( Zone zone )
-    {
-        /// 경합을 줄이기 위해선..
-        _zoneCollection.Push( zone );
-    }
 }
 
 

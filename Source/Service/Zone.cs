@@ -1,19 +1,19 @@
 ﻿using Mala.Math;
 
 /// <summary>
-/// 
+/// 월드 공간 분할 단위
 /// </summary>
 public class Zone
 {
     /// <summary>
     /// 식별자
     /// </summary>
-    public u64 Id;
+    public ZoneId Id;
 
     /// <summary>
     /// 주변 존 접근 정책
     /// </summary>
-    static ValueTuple< i32, i32 >[] nearZoneAccessPolicy =
+    static readonly ValueTuple< i32, i32 >[] nearZoneAccessPolicy =
     [
         new ( -1, -1 ), new ( -1, 0 ), new ( -1, 1 ),
         new (  0, -1 ), new (  0, 0 ), new (  0, 1 ),
@@ -26,17 +26,17 @@ public class Zone
     public const int Marked = 1;
 
     /// <summary>
-    /// 
+    /// 마크 해제 상태 플래그
     /// </summary>
     public const int Unmarked = 0;
 
     /// <summary>
-    /// 
+    /// 마크 플래그
     /// </summary>
-    long _markFlag = 0;
+    i64 _markFlag = Unmarked;
 
     /// <summary>
-    /// 
+    /// 주변 존 목록
     /// </summary>
     List< Zone > _nearZone = new( 3 * 3 );
 
@@ -65,7 +65,7 @@ public class Zone
     bool TryMark() => Interlocked.Exchange( ref _markFlag, Marked ) == Unmarked;
 
     /// <summary>
-    /// 주변 존에 대해 마크를 시도한다.
+    /// 주변 존의 마킹을 시도한다.
     /// </summary>
     public bool TryMarkNearZones()
     {
@@ -74,10 +74,7 @@ public class Zone
         {
             if ( !zone.TryMark() )
             {
-                for ( i32 n = 0; n < markCount; n += 1 )
-                {
-                    _nearZone[ n ].Unmark();
-                }
+                UnmarkNearZones( markCount );
 
                 return false;
             }
@@ -89,7 +86,18 @@ public class Zone
     }
 
     /// <summary>
-    /// 주변 존에 대해 마크해제를 시도한다.
+    /// 주변 존의 마킹을 해제한다.
+    /// </summary>
+    private void UnmarkNearZones( i32 markedZoneCount )
+    {
+        for ( i32 n = 0; n < markedZoneCount; n += 1 )
+        {
+            _nearZone[ n ].Unmark();
+        }
+    }
+
+    /// <summary>
+    /// 주변 존의 마킹을 해제한다.
     /// </summary>
     public bool UnmarkNearZones()
     {
@@ -102,7 +110,7 @@ public class Zone
     }
 
     /// <summary>
-    /// 마크를 해제한다.
+    /// 마킹을 해제한다.
     /// </summary>
     private void Unmark()
     {
@@ -110,7 +118,7 @@ public class Zone
     }
 
     /// <summary>
-    /// 
+    /// 갱신한다.
     /// </summary>
     public void Update()
     {
