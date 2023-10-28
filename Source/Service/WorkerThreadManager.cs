@@ -13,9 +13,9 @@ public class WorkerThreadManager : Singleton< WorkerThreadManager >
     /// <summary>
     /// 초기화한다.
     /// </summary>
-    public void Initialize( int n )
+    public void Initialize( i32 n )
     {
-        for ( int i = 0; i < n; i += 1 )
+        for ( i32 i = 0; i < n; i += 1 )
         {
             threads.Add( new( WorkerThread.Execute() ) );
         }
