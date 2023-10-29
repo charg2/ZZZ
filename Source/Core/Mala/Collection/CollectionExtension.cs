@@ -16,7 +16,7 @@ public static class CollectionFastShuffle
             i32 k = FastRand.Gen() % capacity;
 
             /// 스왑
-            ( array[ k ] ) = ( array[ n ] );
+            ( array[ k ], array[ count ] ) = ( array[ count ], array[ k ] );
         }
     }
 
@@ -29,7 +29,7 @@ public static class CollectionFastShuffle
             n -= 1;
             i32 k = FastRand.Gen() % capacity;
 
-            ( list[ k ] ) = ( list[ n ] );
+            ( list[ k ], list[ count ] ) = ( list[ count ], list[ k ] );
         }
     }
 }
@@ -39,15 +39,7 @@ public static class CollectionFastShuffle
 /// </summary>
 public static class ArrayClear
 {
-    public static void Clear< T >( this T[] array ) where T : class
-    {
-        for ( i32 n = 0; n < array.Length; n+= 1 )
-        {
-            array[ n ] = null;
-        }
-    }
-
-    public static void Clear2< T >( this T[] array ) where T : struct
+    public static void Clear< T >( this T[] array )
     {
         for ( i32 n = 0; n < array.Length; n+= 1 )
         {
