@@ -18,7 +18,7 @@ public static class CollectionFastShuffle
             i32 k = FastRand.Gen() % capacity;
 
             /// 스왑
-            ( array[ k ] ) = ( array[ count ] );
+            ( array[ k ], array[ count ] ) = ( array[ count ], array[ k ] );
         }
     }
 
@@ -32,7 +32,7 @@ public static class CollectionFastShuffle
             count -= 1;
             i32 k = FastRand.Gen() % capacity;
 
-            ( list[ k ] ) = ( list[ count ] );
+            ( list[ k ], list[ count ] ) = ( list[ count ], list[ k ] );
         }
     }
 }
