@@ -17,41 +17,40 @@ public class WorkerThread
                 /// 다른 로직들을 처리....
                 /// Do Logic
 
-                /// 존 로직 처리
-                UpdateZoneLogic();
+                /// 클러스터 처리
+                DispatchCluster();
             }
         };
     }
 
-    
     /// <summary>
-    /// 존을 갱신한다.
+    /// 클러스터을 처리한다.
     /// </summary>
-    private static void UpdateZoneLogic()
+    private static void DispatchCluster()
     {
-        var zoneManager = ZoneManager.Instance;
+        var clusterManager = ClusterManager.Instance;
 
         for ( ;; )
         {
-            /// 존을 꺼낸다
-            if ( !zoneManager.TryPop( out var zone ) )
+            /// 스레드별로 클러스터매니저 리셋 후 다른 로직 처리를 보장하기 위해 버전을 체크한다.
+            if ( !clusterManager.CheckAndUpdateVersion() )
                 return;
 
-            /// Zone 로직 처리
-            zone.Update();
-
-            /// 주변 존의 마킹을 해제한다
-            zone.UnmarkNearZones();
-
-            /// 작업을 끝낸 존을 반한한다
-            if ( zoneManager.Push( zone ) )
-            {
-                /// 마지막 존 작업을 끝낸 후 초기 상태로 되돌린다
-                zoneManager.Reset();
-
-                /// 다른 로직을 처리하기 위해 종료처리
+            /// 클러스터을 할당 받는다.
+            if ( !clusterManager.TryPop( out var cluster ) )
                 return;
-            }
+
+            /// 현재 처리 중인 클러스터를 설정한다.
+            ClusterManager.DispatchingClusterOnThisThread = cluster;
+
+            /// 클러스터 로직 처리
+            cluster.Update();
+
+            /// 현재 처리 중인 클러스터를 제거한다.
+            ClusterManager.DispatchingClusterOnThisThread = null;
+
+            /// 작업을 끝낸 클러스터을 반환한다
+            clusterManager.Push( cluster );
         }
     }
 
